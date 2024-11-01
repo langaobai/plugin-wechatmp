@@ -1,0 +1,16 @@
+apiVersion: wechatmp.halo.run/v1alpha1
+kind: Oauth2ClientRegistration
+metadata:
+  name: wechatmp
+spec:
+  clientAuthenticationMethod: "client_secret_basic"
+  authorizationGrantType: "authorization_code"
+  redirectUri: "{baseUrl}/login/oauth2/code/github"
+  scopes:
+    - "read:user"
+  authorizationUri: ""
+  tokenUri: "https://github.com/login/oauth/access_token"
+  userInfoUri: "https://api.github.com/user"
+  userInfoAuthenticationMethod: "header"
+  userNameAttributeName: "id"
+  clientName: "wechatmp"
