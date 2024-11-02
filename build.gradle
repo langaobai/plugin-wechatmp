@@ -1,0 +1,103 @@
+plugins {
+    id 'java'
+    id "com.github.node-gradle.node" version "7.0.2"
+    id "io.freefair.lombok" version "8.0.1"
+    id "run.halo.plugin.devtools" version "0.3.0"
+}
+
+group 'run.halo.wechatmp'
+sourceCompatibility = JavaVersion.VERSION_17
+
+repositories {
+    mavenCentral()
+    maven { url 'https://s01.oss.sonatype.org/content/repositories/releases' }
+    maven { url 'https://s01.oss.sonatype.org/content/repositories/snapshots/' }
+    maven { url 'https://repo.spring.io/milestone' }
+}
+
+dependencies {
+    implementation platform('run.halo.tools.platform:plugin:2.20.0-SNAPSHOT')
+    implementation 'cn.hutool:hutool-all:5.8.26'
+//    implementation 'org.springframework.security:spring-security-oauth2-authorization-server:1.3.2'
+//    implementation 'com.nimbusds:oauth2-oidc-sdk:9.22' // 根据需要选择版本
+//    implementation 'com.nimbusds:nimbus-jose-jwt:9.22' // 确保使用正确的版本
+    implementation 'com.github.binarywang:weixin-java-mp:4.6.5.B'
+    implementation 'com.alibaba:fastjson:2.0.53'
+    implementation 'com.fasterxml.jackson.core:jackson-core:2.17.2'
+    implementation 'com.fasterxml.jackson.dataformat:jackson-dataformat-xml:2.17.2'
+    compileOnly 'run.halo.app:api'
+
+    testImplementation 'run.halo.app:api'
+    testImplementation 'org.springframework.boot:spring-boot-starter-test'
+}
+
+test {
+    useJUnitPlatform()
+}
+
+tasks.withType(JavaCompile).configureEach {
+    options.encoding = "UTF-8"
+}
+
+node {
+    nodeProjectDir = file("${project.projectDir}/ui")
+}
+
+tasks.register('buildFrontend', PnpmTask) {
+    args = ['build']
+    dependsOn('installDepsForUI')
+}
+
+tasks.register('installDepsForUI', PnpmTask) {
+    args = ['install']
+}
+
+build {
+    // build frontend before build
+    tasks.named('compileJava').configure {
+        dependsOn('buildFrontend')
+    }
+}
+
+haloPlugin {
+    openApi {
+        outputDir = file("$rootDir/api-docs/openapi/v3_0")
+        groupingRules {
+            'wechatmpV1alpha1Api' {
+                displayName = 'Extension API for plugin-wechatmp'
+                pathsToMatch = [
+                        '/apis/wechatmp.halo.run/v1alpha1/authorizedclients/**',
+                        '/apis/wechatmp.halo.run/v1alpha1/oauth2clientregistrations/**',
+                        '/apis/wechatmp.halo.run/v1alpha1/plugins/**'
+                ]
+            }
+        }
+        groupedApiMappings = [
+                '/v3/api-docs/wechatmpV1alpha1Api': 'wechatmpV1alpha1Api.json'
+        ]
+        generator {
+            outputDir = file("${projectDir}/ui/src/api/generated")
+        }
+    }
+}
+
+halo {
+    version = '2.20.8'
+    debug = true
+}
+
+halo {
+    version = '2.20.8'
+    superAdminUsername = 'admin'
+    superAdminPassword = '123456'
+    externalUrl = 'http://localhost:8090'
+    docker {
+        // windows 默认为 npipe:////./pipe/docker_engine
+        url = 'npipe:////./pipe/docker_engine'
+//        url = 'unix:///var/run/docker.sock'
+        apiVersion = '1.45'
+    }
+    port = 8090
+    debug = true
+    debugPort = 5005
+}

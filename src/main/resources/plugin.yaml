@@ -1,0 +1,23 @@
+# Refer https://docs.halo.run/developer-guide/plugin/basics/manifest
+apiVersion: plugin.halo.run/v1alpha1
+kind: Plugin
+metadata:
+  # The name defines how the plugin is invoked, A unique name
+  name: plugin-wechatmp
+spec:
+  enabled: true
+  requires: ">=2.19.3"
+  author:
+    name: Halo
+    website: https://github.com/halo-dev
+  logo: medsta_logo.svg
+#  configMapName: plugin-wechatmp-configmap
+#  settingName: plugin-wechatmp-settings
+  homepage: https://github.com/halo-dev/plugin-medsta#readme
+  repo: https://github.com/halo-dev/plugin-medsta
+  issues: https://github.com/halo-dev/plugin-medsta/issues
+  displayName: "微信公众号登录"
+  description: "微信公众号扫码登录功能"
+  license:
+    - name: "GPL-3.0"
+      url: "https://github.com/halo-dev/plugin-medsta/blob/main/LICENSE"

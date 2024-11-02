@@ -1,0 +1,20 @@
+apiVersion: auth.halo.run/v1alpha1
+kind: AuthProvider
+metadata:
+  name: wechatmp
+  labels:
+    auth.halo.run/auth-binding: "true"
+spec:
+  displayName: 微信公众号
+  description: 微信公众号授权登陆
+  logo: /plugins/plugin-wechatmp/assets/static/wechat.svg
+  website: https://mp.weixin.qq.com/
+  helpPage: https://developers.weixin.qq.com/doc/offiaccount/Basic_Information/Access_Overview.html
+  authenticationUrl: /oauth2/authorization/wechatmp
+  bindingUrl: /oauth2/authorization/github
+  unbindUrl: /apis/uc.api.auth.halo.run/v1alpha1/user-connections/github/disconnect
+  settingRef:
+    name: generic-oauth2-setting
+    group: genericOauth
+  configMapRef:
+    name: oauth2-wechatmp-config

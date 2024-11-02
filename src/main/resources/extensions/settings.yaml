@@ -1,0 +1,29 @@
+apiVersion: v1alpha1
+kind: Setting
+metadata:
+  name: generic-oauth2-setting
+spec:
+  forms:
+    - group: genericOauth
+      label: "通用 OAuth 配置"
+      formSchema:
+        - $formkit: text
+          name: clientId
+          label: "Client ID"
+          validation: required:trim
+          help: 微信填写appId
+        - $formkit: password
+          name: clientSecret
+          label: "Client Secret"
+          validation: required:trim
+          help: 微信填写appsecret
+        - $formkit: text
+          name: token
+          label: "令牌(Token)"
+          validation: required:trim
+          help: 微信公众号专用：token
+        - $formkit: text
+          name: encodingAESKey
+          label: "消息加密密钥EncodingAESKey"
+          validation: required:trim
+          help: 微信公众号专用：EncodingAESKey
