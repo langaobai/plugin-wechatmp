@@ -2,18 +2,20 @@ package run.halo.wechatmp.oauth;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import me.chanjar.weixin.common.error.WxErrorException;
+import me.chanjar.weixin.mp.bean.result.WxMpUser;
 import org.apache.commons.lang3.StringUtils;
 import org.springdoc.webflux.core.fn.SpringdocRouteBuilder;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
+import org.springframework.security.oauth2.client.OAuth2AuthorizedClient;
+import org.springframework.security.oauth2.client.authentication.OAuth2LoginAuthenticationToken;
 import org.springframework.stereotype.Component;
 import org.springframework.web.reactive.function.server.RequestPredicates;
 import org.springframework.web.reactive.function.server.RouterFunction;
-import org.springframework.web.reactive.function.server.RouterFunctions;
 import org.springframework.web.reactive.function.server.ServerRequest;
 import org.springframework.web.reactive.function.server.ServerResponse;
 import reactor.core.publisher.Mono;
-import run.halo.app.extension.GroupVersion;
 import run.halo.wechatmp.util.WeChatQrCodeCacheUtil;
 import run.halo.wechatmp.util.WechatMpUtil;
 import run.halo.wechatmp.util.WechatQrCode;
@@ -25,11 +27,11 @@ import run.halo.wechatmp.util.WechatQrCode;
 public class WechatMpRouter {
 
     private final String tag = "plugin-wechatmp";
-    private final Oauth2LoginConfiguration oauth2LoginConfiguration;
     @Autowired
     private WechatMpUtil wechatMpUtil;
     @Autowired
     private WeChatUserServiceImpl wechatUserService;
+
 
     @Bean
     RouterFunction<ServerResponse> wechatMpRoute() {
@@ -42,13 +44,6 @@ public class WechatMpRouter {
             .build();
     }
 
-    // @Bean
-    // RouterFunction<ServerResponse> wechatCheckMsgFunction() {
-    //     return RouterFunctions.route()
-    //         .POST("/apis/wechatmp.halo.run/v1alpha1/plugins/wechat/checkMsg", this::wechatMsg)
-    //         .build();
-    // }
-
     RouterFunction<ServerResponse> nested() {
         return SpringdocRouteBuilder.route()
             .GET("/loginQrCode", this::loginQrCode,
@@ -57,10 +52,10 @@ public class WechatMpRouter {
             .GET("/userLogin",this::userLogin,
                 builder -> builder.operationId("UserLogin").description("Check whether the code scanning is complete").tag(tag)
             )
-            .GET("/wechatCheck",this::wechatCheck,
+            .GET("/-/wechatCheck",this::wechatCheck,
                 builder -> builder.operationId("WechatCheck").description("Verify the WeChat signature").tag(tag)
             )
-            .POST("/wechat/checkMsg",this::wechatMsg,
+            .POST("/-/wechatCheck",this::wechatMsg,
                 builder -> builder.operationId("WechatMsg").description("Receive WeChat messages").tag(tag)
             )
             .build();
@@ -88,7 +83,11 @@ public class WechatMpRouter {
         log.info("timestamp:{}", timestamp);
         log.info("nonce:{}", nonce);
         wechatUserService.checkSignature(signature, timestamp, nonce);
-        return ServerResponse.ok().bodyValue(wechatUserService.handleWechatMsg(""));
+        return request.bodyToMono(String.class).flatMap(body -> {
+                // 将请求体传递给 wechatUserService.handleWechatMsg()
+            log.info("body:{}", body);
+            return ServerResponse.ok().bodyValue(wechatUserService.handleWechatMsg(body));
+        });
     }
 
     /**
@@ -99,14 +98,29 @@ public class WechatMpRouter {
      */
     Mono<ServerResponse> userLogin(ServerRequest request) {
         String ticketParams = request.queryParams().getFirst("ticket");
+
         String openId = WeChatQrCodeCacheUtil.get(ticketParams);
         if (StringUtils.isNotEmpty(openId)) {
-            log.info("login success,open id:{}", openId);
-            // return ApiResultUtil.success(jwtUtil.createToken(openId));
-            return ServerResponse.ok().bodyValue("check success");
+            log.info("微信扫码登录成功！,open id:{}", openId);
+            // 获取微信用户基本信息
+            try {
+                WxMpUser userWxInfo = WechatMpUtil.wxMpService.getUserService().userInfo(openId);
+                log.info("userWxInfo:{}", userWxInfo);
+                log.debug("userWxInfo:{}", userWxInfo);
+                if (userWxInfo != null) {
+                    // TODO 可以添加关注用户到本地数据库
+                    System.out.println("userWxInfo: "+userWxInfo.toString());
+                }
+            } catch (WxErrorException e) {
+                if (e.getError().getErrorCode() == 48001) {
+                    log.info("该公众号没有获取用户信息权限！");
+                }
+            }
+            // ApiResultUtil.success(JwtUtil.createToken(openId));
+            return ServerResponse.ok().bodyValue("校验成功!");
         }
-        log.info("login error,ticket:{}", ticketParams);
-        return ServerResponse.ok().bodyValue("check faild");
+        log.info("登录失败,ticket:{}", ticketParams);
+        return ServerResponse.ok().bodyValue("校验失败!请重新扫码");
     }
 
     /**

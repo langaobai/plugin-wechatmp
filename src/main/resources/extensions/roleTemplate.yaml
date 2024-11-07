@@ -11,10 +11,6 @@ metadata:
     rbac.authorization.halo.run/display-name: "匿名访问"
 rules:
   - apiGroups: ["wechatmp.halo.run"]
-    resources: ["plugins/wechat"]
-    resourceNames: ["checkMsg"]
-    verbs: [ "create" ]
-  - apiGroups: ["wechatmp.halo.run"]
     resources: ["plugins"]
     resourceNames: ["authorization-code"]
     verbs: [ "get", "list" ]
@@ -27,9 +23,9 @@ rules:
     resourceNames: ["userLogin"]
     verbs: [ "get", "list" ]
   - apiGroups: ["wechatmp.halo.run"]
-    resources: ["plugins"]
-    resourceNames: ["wechatCheck"]
-    verbs: [ "get","list" ]
+    resources: ["plugins/wechatCheck"]
+    resourceNames: ["-"]
+    verbs: [ "get","create" ]
 # "loginQrCode", "userLogin", "wechatCheck", "wechatCheckMsg"
 #  - apiGroups:
 #      - "wechatmp.halo.run"

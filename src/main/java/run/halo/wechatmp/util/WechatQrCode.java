@@ -10,3 +10,4 @@ public class WechatQrCode {
     private String url;
     private String qrCodeUrl;
 }
+

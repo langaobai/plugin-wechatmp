@@ -10,12 +10,13 @@ import me.chanjar.weixin.mp.bean.result.WxMpQrCodeTicket;
 import me.chanjar.weixin.mp.config.impl.WxMpDefaultConfigImpl;
 import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Component;
+import run.halo.app.plugin.ReactiveSettingFetcher;
 
 @Slf4j
 @Component
 public class WechatMpUtil {
 
-
+    private final ReactiveSettingFetcher settingFetcher;
     public static String appId = "wxf95035afac833d68";
     public static String appSecret = "1fa77a4b927c58876598cf41e9d90199";
     public static String token = "xiaoming";
@@ -32,7 +33,14 @@ public class WechatMpUtil {
      */
     private static int QR_CODE_TICKET_TIMEOUT = 10 * 60;
 
-    public WechatMpUtil() {
+    public WechatMpUtil(ReactiveSettingFetcher settingFetcher) {
+        this.settingFetcher = settingFetcher;
+        /*
+        var clientId = this.settingFetcher.get("genericOauth").map(setting->{
+            System.out.println("client id:"+setting.get("clientId").asText());
+            return setting.get("clientId").asText();
+        }).defaultIfEmpty("");
+        */
         if (wxMpService == null) {
             WxMpDefaultConfigImpl config = new WxMpDefaultConfigImpl();
             config.setAppId(appId); // 设置微信公众号的appid

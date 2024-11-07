@@ -1,8 +1,10 @@
 package run.halo.wechatmp.util;
 
+import cn.hutool.core.util.XmlUtil;
 import com.alibaba.fastjson2.JSON;
 import com.alibaba.fastjson2.JSONObject;
 import org.apache.commons.lang3.StringUtils;
+import java.util.Map;
 
 /**
  * @author zhp
@@ -19,16 +21,16 @@ public class WeChatMsgUtil {
      * @return
      */
     public static WeChatReceiveMessage msgToReceiveMessage(String xml) {
-        JSONObject jsonObject = JSON.parseObject(XmlUtil.xml2json(xml));
+        Map<String, Object> receiverMap = XmlUtil.xmlToMap(xml);
         WeChatReceiveMessage  receiveMessage = new WeChatReceiveMessage();
-        receiveMessage.setToUserName(jsonObject.getString("ToUserName"));
-        receiveMessage.setFromUserName(jsonObject.getString("FromUserName"));
-        receiveMessage.setCreateTime(jsonObject.getString("CreateTime"));
-        receiveMessage.setMsgType(jsonObject.getString("MsgType"));
-        receiveMessage.setContent(jsonObject.getString("Content"));
-        receiveMessage.setMsgId(jsonObject.getString("MsgId"));
-        receiveMessage.setEvent(jsonObject.getString("Event"));
-        receiveMessage.setTicket(jsonObject.getString("Ticket"));
+        receiveMessage.setToUserName(String.valueOf(receiverMap.get("ToUserName")));
+        receiveMessage.setFromUserName(String.valueOf(receiverMap.get("FromUserName")));
+        receiveMessage.setCreateTime(String.valueOf(receiverMap.get("CreateTime")));
+        receiveMessage.setMsgType(String.valueOf(receiverMap.get("MsgType")));
+        receiveMessage.setContent(String.valueOf(receiverMap.get("Content")));
+        receiveMessage.setMsgId(String.valueOf(receiverMap.get("MsgId")));
+        receiveMessage.setEvent(String.valueOf(receiverMap.get("Event")));
+        receiveMessage.setTicket(String.valueOf(receiverMap.get("Ticket")));
         return receiveMessage;
     }
 
